@@ -164,14 +164,18 @@ defmodule Rustler do
         # {:error, {:upgrade, 'Upgrade not supported by this NIF library.'}}
         :code.purge(__MODULE__)
 
-        {otp_app, path} = @load_from
+        case @load_from do
+          {otp_app, path} ->
+            load_path =
+              otp_app
+              |> Application.app_dir(path)
+              |> to_charlist()
 
-        load_path =
-          otp_app
-          |> Application.app_dir(path)
-          |> to_charlist()
+            :erlang.load_nif(load_path, _construct_load_data())
 
-        :erlang.load_nif(load_path, _construct_load_data())
+          path ->
+            :erlang.load_nif(path, _construct_load_data())
+        end
       end
     end
   end
